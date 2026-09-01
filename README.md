@@ -33,7 +33,8 @@ a stub; a layer marked "planned" simply has no code yet.
 | Integrity | `pramaan.integrity` | **Implemented.** RFC 6962 Merkle tree with inclusion proofs over a case's artifact hashes; an append-only, hash-chained audit ledger with tamper localization; Ed25519 signing for an examiner's key. The BSA §63(4) certificate generator itself lives in `pramaan.report` (planned) and builds on this layer. 100% test coverage. |
 | Timeline | `pramaan.timeline` | **Implemented.** Multi-channel timeline model over typed segments; gap/anomaly classification grounded in the Honeywell three-way deletion taxonomy (`docs/sources.md`); Theil-Sen clock-drift estimation, robust to a single bad anchor. 100% test coverage. |
 | Analysis | `pramaan.analysis` | **Partially implemented, optional.** OSD timestamp reading via calibrated template matching (`osd_ocr`) — lazily imports OpenCV, needs the `analysis` extra, produces a recorder-claimed timestamp for pairing with an independently-verified true-time source, not evidence on its own. Detection/clustering not yet built. 100% test coverage. |
-| Case & export | `pramaan.case`, `pramaan.export`, `pramaan.report` | Planned — SQLite case store, the SEF interchange format, PDF reporting. |
+| Case store | `pramaan.case` | **Implemented.** One portable SQLite file per investigation; evidence items, recovered clips, and findings; every mutating action automatically recorded into the case's own integrity ledger; composes a `pramaan.timeline.Timeline` directly from stored clips. 100% test coverage. |
+| Export & report | `pramaan.export`, `pramaan.report` | Planned — the SEF interchange format, PDF reporting, the BSA §63(4) certificate generator. |
 | API / examiner console | `pramaan.api`, `web/` | Planned. |
 
 ## Design principles
