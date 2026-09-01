@@ -29,7 +29,7 @@ a stub; a layer marked "planned" simply has no code yet.
 |---|---|---|
 | Acquisition | `pramaan.core` | **Implemented.** Read-only, bounds-checked disk image access with no write path at all; single-pass multi-algorithm hashing; write-block attestation. 100% test coverage. |
 | Filesystem | `pramaan.fs` | **Implemented.** Declarative vendor-profile format and interpreter; vendor fingerprinting registry. Ships a fully-verified Dahua DHAV container profile and a deliberately partial Hikvision Master Sector profile (see `docs/sources.md` for exactly what is and isn't confirmed). 100% test coverage. |
-| Recovery | `pramaan.recovery` | Planned — index-based clip extraction, unallocated-space carving, and the unknown-vendor structural profiler. |
+| Recovery | `pramaan.recovery` | **Implemented.** Index-based clip extraction (generic across any profile with role-tagged fields); unallocated-space carving with a lossless remux and an independently-verified bit-exactness proof; the unknown-vendor structural profiler, promoted from a validated proof of concept into tested production code that also emits a loadable draft profile. 100% test coverage. |
 | Integrity | `pramaan.integrity` | Planned — Merkle-chained, Ed25519-signed audit log and the BSA §63(4) certificate generator. |
 | Timeline | `pramaan.timeline` | Planned — multi-channel timeline model, gap/deletion-intent classification, clock-drift correction. |
 | Analysis | `pramaan.analysis` | Planned, optional — OSD timestamp OCR, detection/clustering as investigative triage, explicitly non-evidentiary. |

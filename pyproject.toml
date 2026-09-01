@@ -63,3 +63,9 @@ target-version = "py311"
 python_version = "3.11"
 warn_unused_ignores = true
 warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+# imageio-ffmpeg ships no type stubs and no py.typed marker; its API surface
+# used here (get_ffmpeg_exe) is a single function returning a path string.
+module = "imageio_ffmpeg"
+ignore_missing_imports = true
