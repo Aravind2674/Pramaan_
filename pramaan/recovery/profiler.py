@@ -152,7 +152,7 @@ def _measure_payload_extents(image: DiskImage, bases: list[int], header_length: 
     """For each block, how many bytes past the header are non-zero before
     the first all-zero tail — a length field, if one exists, should
     correlate almost perfectly against this."""
-    extents = np.empty(len(bases), dtype=np.int64)
+    extents: np.ndarray = np.empty(len(bases), dtype=np.int64)
     for i, base in enumerate(bases):
         body = np.frombuffer(image.read(base + header_length, cadence - header_length), dtype=np.uint8)
         nonzero = np.flatnonzero(body)
