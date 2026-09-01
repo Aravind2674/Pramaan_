@@ -1,0 +1,83 @@
+# Hikvision DVR Master Sector — deliberately incomplete.
+#
+# This profile only declares the ONE thing confirmed at an exact byte
+# offset from a primary source: the Master Sector signature. Every other
+# field the source paper describes (HDD capacity, System Logs pointer,
+# Video Data Area offset, data-block size, HIKBTREE offset/size, system-init
+# timestamp) is real and its ORDER within the sector is documented below,
+# but the paper's own figure gives example VALUES rather than a byte-offset
+# table, and this project's policy is that a profile never states an offset
+# it has not verified. Fabricating plausible-looking offsets to make this
+# profile "feel" more complete would be worse than leaving it honestly
+# partial — a wrong offset silently returns a wrong timestamp or a wrong
+# channel number, which is a materially worse failure than an admitted gap.
+#
+# Completing this profile is the first task once a real Hikvision disk
+# image is available: read the Master Sector, use the confirmed field
+# ORDER below to locate each field by scanning for its expected value
+# range/type, and record the resulting offsets as `status: confirmed`.
+vendor: hikvision
+format_id: hikvision_master_sector
+display_name: "Hikvision DVR Master Sector"
+version: "1.0"
+confidence: partial
+description: >
+  The first structure Pramaan looks for on a suspected Hikvision disk. Only
+  the signature is confirmed at a fixed byte offset; the remaining Master
+  Sector fields are documented by name and order only, pending calibration
+  against a real image.
+source: >
+  Han, J., Jeong, D., Lee, S. (2015). "Analysis of the HIKVISION DVR File
+  System." ICDF2C 2015, Springer LNICST vol. 157, pp. 189-199.
+  DOI: 10.1007/978-3-319-25512-5_13. Full text read 2026-09-01 via
+  https://eudl.eu/pdf/10.1007/978-3-319-25512-5_13
+endian: little
+signature:
+  offset: 512  # 0x200
+  ascii: "HIKVISION@HANGZHOU"
+  recurring: false
+fields:
+  - name: signature
+    offset: 0
+    size: 19
+    dtype: ascii
+    status: confirmed
+    note: "Re-reads the same 19 bytes matched by the signature block above, exposed as a field so a full record read always returns it."
+notes:
+  - >
+    ASSUMPTION, not yet verified against a real image: offset 0x200 is
+    relative to the start of the acquired image (the raw disk / disk-0
+    boundary), matching how the source paper's own figures present the
+    Master Sector. If a real Hikvision image has a partition table or other
+    structure preceding this, the signature offset may need to become
+    relative to a detected partition start rather than a fixed absolute
+    value — check this before trusting a non-match as "not a Hikvision
+    disk" on real hardware.
+  - >
+    A byte-identical Backup Master Sector immediately follows the System
+    Logs region — useful as a cross-check once the System Logs offset/size
+    fields are calibrated, but not modeled here since that offset is not
+    yet confirmed.
+  - >
+    Confirmed field ORDER within the Master Sector, per the source paper's
+    Figure 2 (values shown there are worked examples from one sampled
+    device, not universal offsets): HDD capacity -> System Logs
+    offset+size -> Video Data Area offset -> data-block size (paper notes
+    this varies by deployment and must be read as a stored field, never
+    hardcoded, even once its offset is confirmed) -> total data-block count
+    -> HIKBTREE offset -> HIKBTREE size -> system-initialization timestamp
+    (Unix, UTC). This last field is the one meaningful timestamp Hikvision
+    exposes for anti-forensic detection: a Hikvision DVR has no delete
+    function short of full system initialization, which resets this field
+    and the System Logs / HIKBTREE regions but does NOT erase the Video
+    Data Area itself (confirmed, same source, Section 3.2) — carving video
+    data blocks directly remains possible regardless of this timestamp.
+  - >
+    HIKBTREE (the block index reached via the offset above) has its own
+    signature, "HIKBTREE" (8 bytes ASCII), and its own record layout
+    (header -> page list -> 4KB pages of Data Block Entries -> footer).
+    This belongs in a separate profile once the Master Sector's HIKBTREE
+    offset/size fields are calibrated and can be followed to a real
+    HIKBTREE instance to confirm the Data Block Entry byte layout
+    (existence flag, channel number at a confirmed +8 byte position within
+    the entry per the source figure, start/end time, data pointer).

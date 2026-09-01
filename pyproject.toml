@@ -1,0 +1,65 @@
+[project]
+name = "pramaan"
+version = "0.1.0"
+description = "Multi-vendor DVR/NVR forensic acquisition, recovery, and analysis toolkit"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Team Pramaan" }]
+
+# Core dependencies are deliberately minimal and free of any ML/CV stack.
+# A field examiner must be able to `pip install pramaan` on an air-gapped
+# machine and have the acquisition, filesystem, recovery, and integrity
+# layers work with nothing more than these.
+dependencies = [
+    "numpy>=1.26",
+    "pydantic>=2.5",
+    "PyYAML>=6.0",
+    "jsonschema>=4.20",
+    "cryptography>=41.0",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.30",
+    "imageio-ffmpeg>=0.6",
+    "reportlab>=4.0",
+]
+
+[project.optional-dependencies]
+# Optional, lazily-imported analysis extras. Every artifact these produce is
+# tagged evidentiary=false in the case store — see pramaan/analysis/.
+analysis = [
+    "opencv-python-headless>=4.9",
+    "onnxruntime>=1.17",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "mypy>=1.10",
+    "ruff>=0.5",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["pramaan*"]
+
+[tool.setuptools.package-data]
+# Vendor profiles (YAML) and the schema that validates them are data this
+# package ships and reads at runtime via importlib.resources — without this,
+# a real (non-editable) install would silently omit them from the wheel.
+"pramaan.fs" = ["*.json"]
+"pramaan.fs.profiles" = ["*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_ignores = true
+warn_redundant_casts = true

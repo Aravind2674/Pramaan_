@@ -1,0 +1,93 @@
+# Pramaan
+
+A multi-vendor DVR/NVR forensic acquisition, recovery, and analysis toolkit.
+
+DVRs and NVRs do not store video on a filesystem any general-purpose
+forensic tool understands — Hikvision, Dahua, and dozens of white-label
+vendors each use an undocumented, proprietary on-disk layout. When a
+recorder is seized as evidence today, an investigator's options are export
+through the recorder's own menu (which cannot touch deleted footage and
+loses metadata), or a closed, expensive, foreign commercial tool that may
+not support the recorder in hand at all. Pramaan is an open, inspectable
+alternative: acquire a seized disk read-only, identify and parse its
+vendor's filesystem, recover footage whose index entry is gone, and produce
+output built for a court — a documented interchange format and a
+statutorily-formatted certificate — rather than just a video player.
+
+This project is built for **SIH26150** (National Technical Research
+Organisation, Smart India Hackathon 2026): *"Development of a Multi-Vendor
+DVR/NVR Forensic Analysis Tool for Standardized Acquisition, Recovery, and
+Analysis of Surveillance Evidence."*
+
+## Status
+
+This project is under active development. The table below is exact about
+what exists today versus what is planned — nothing here is a placeholder or
+a stub; a layer marked "planned" simply has no code yet.
+
+| Layer | Package | Status |
+|---|---|---|
+| Acquisition | `pramaan.core` | **Implemented.** Read-only, bounds-checked disk image access with no write path at all; single-pass multi-algorithm hashing; write-block attestation. 100% test coverage. |
+| Filesystem | `pramaan.fs` | **Implemented.** Declarative vendor-profile format and interpreter; vendor fingerprinting registry. Ships a fully-verified Dahua DHAV container profile and a deliberately partial Hikvision Master Sector profile (see `docs/sources.md` for exactly what is and isn't confirmed). 100% test coverage. |
+| Recovery | `pramaan.recovery` | Planned — index-based clip extraction, unallocated-space carving, and the unknown-vendor structural profiler. |
+| Integrity | `pramaan.integrity` | Planned — Merkle-chained, Ed25519-signed audit log and the BSA §63(4) certificate generator. |
+| Timeline | `pramaan.timeline` | Planned — multi-channel timeline model, gap/deletion-intent classification, clock-drift correction. |
+| Analysis | `pramaan.analysis` | Planned, optional — OSD timestamp OCR, detection/clustering as investigative triage, explicitly non-evidentiary. |
+| Case & export | `pramaan.case`, `pramaan.export`, `pramaan.report` | Planned — SQLite case store, the SEF interchange format, PDF reporting. |
+| API / examiner console | `pramaan.api`, `web/` | Planned. |
+
+## Design principles
+
+- **Evidence is never modified.** `DiskImage` has no write method — this is
+  enforced by the type, not by convention.
+- **A new vendor is a data change, not a code change.** Vendor filesystem
+  layouts are declarative YAML validated against a JSON Schema; the
+  interpreter that reads them does not change per vendor.
+- **Nothing is claimed beyond what is verified.** A profile field's
+  `status` (`confirmed`/`unconfirmed`) and a profile's overall `confidence`
+  are load-bearing, not decorative — see `docs/sources.md`.
+- **No cloud dependency, ever.** The core has no ML dependency and no
+  network call in its evidence path; it installs and runs on an air-gapped
+  machine.
+
+## Repository layout
+
+```
+pramaan/
+├── core/           acquisition — DiskImage, hashing, write-block attestation
+├── fs/             filesystem — vendor profiles, the profile interpreter, fingerprinting
+│   └── profiles/   *.yaml — one file per recorder filesystem/container format
+├── recovery/       (planned) index walk, carving, unknown-vendor profiler
+├── integrity/      (planned) audit ledger, statutory certificate
+├── timeline/       (planned) multi-channel timeline, gap/clock analysis
+├── analysis/       (planned, optional) AI-assisted investigative triage
+├── case/           (planned) case store
+├── export/         (planned) SEF interchange format
+├── report/         (planned) PDF reporting
+└── api/            (planned) FastAPI backend
+web/                (planned) examiner console frontend
+forge/              synthetic DVR image generator for testing (planned)
+bench/              benchmark corpus and measured results (planned)
+tests/
+├── unit/
+└── integration/
+docs/
+├── decisions/      architecture decision records
+└── sources.md      citation log — every technical/legal claim traces here
+scratch/            gitignored — throwaway/debug output only, never committed
+```
+
+## Development
+
+Requires Python 3.11+.
+
+```bash
+pip install -e ".[dev]"
+pytest tests/ --cov=pramaan --cov-report=term-missing
+ruff check pramaan/ tests/
+mypy pramaan/
+```
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE).

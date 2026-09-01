@@ -1,0 +1,10 @@
+# Normalize line endings to LF in the repository regardless of the
+# contributor's OS, so diffs are never polluted by CRLF/LF churn.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

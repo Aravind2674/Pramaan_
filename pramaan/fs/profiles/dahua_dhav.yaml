@@ -1,0 +1,133 @@
+# Dahua DHAV container chunk header.
+#
+# This is a CONTAINER format (the record structure of one video/audio chunk
+# inside a .dav file or a Dahua recorder's raw video-data region), not a
+# volume-level index like the Hikvision profile in this same directory. It
+# is the highest-confidence profile in this project because it is not
+# derived from a paper's transcription — every offset below was read
+# directly from FFmpeg's shipping DHAV demuxer source.
+vendor: dahua
+format_id: dahua_dhav_chunk
+display_name: "Dahua DHAV container chunk"
+version: "1.0"
+confidence: verified
+description: >
+  The per-chunk header Dahua recorders prefix onto every video/audio frame,
+  both inside .dav container files and in the raw video-data region of a
+  Dahua DVR/NVR's disk. Each chunk is also closed by a lowercase "dhav" tail
+  tag plus a seek_back offset, which lets a carving tool validate a chunk's
+  boundaries and walk backward from end-of-image even after the filesystem's
+  own index has been destroyed.
+source: >
+  Read directly from libavformat/dhav.c in the FFmpeg source tree
+  (function read_chunk(), dhav_probe(), get_timeinfo()), fetched from
+  https://raw.githubusercontent.com/FFmpeg/FFmpeg/master/libavformat/dhav.c
+  on 2026-09-01. Not a secondary paraphrase of a paper or a vendor
+  marketing page — this is what a widely-deployed open-source demuxer
+  actually parses.
+license_note: >
+  FFmpeg's DHAV demuxer is (c) 2018 Paul B Mahol, licensed
+  LGPL-2.1-or-later. No FFmpeg source code is reproduced here — this file
+  only documents the on-disk structure that code parses, expressed as data
+  for Pramaan's own independent interpreter.
+endian: little
+signature:
+  offset: 0
+  ascii: "DHAV"
+  recurring: true
+  valid_type_bytes: [0xf0, 0xf1, 0xfc, 0xfd]
+fields:
+  - name: magic
+    offset: 0
+    size: 4
+    dtype: ascii
+    status: confirmed
+    note: "Always the literal string 'DHAV'."
+  - name: type
+    offset: 4
+    size: 1
+    dtype: u8
+    status: confirmed
+    note: >
+      0xf0 = audio chunk. 0xfd = video chunk (codec named in the extension
+      TLV block, not modeled in this profile version). 0xfc = video chunk,
+      not flagged as a keyframe by FFmpeg's own reader. 0xf1 = padding/skip
+      chunk with no timestamp or extension fields — see the note on
+      conditional layout below.
+  - name: subtype
+    offset: 5
+    size: 1
+    dtype: u8
+    status: confirmed
+  - name: channel
+    offset: 6
+    size: 1
+    dtype: u8
+    role: channel
+    status: confirmed
+  - name: frame_subnumber
+    offset: 7
+    size: 1
+    dtype: u8
+    status: confirmed
+  - name: frame_number
+    offset: 8
+    size: 4
+    dtype: u32
+    role: sequence
+    status: confirmed
+  - name: frame_length
+    offset: 12
+    size: 4
+    dtype: u32
+    role: length
+    status: confirmed
+    note: >
+      Total length of this chunk including this header, in bytes. FFmpeg's
+      own reader rejects any value below 24 as invalid — a useful sanity
+      check when scanning a damaged image for genuine chunk boundaries.
+  - name: date_packed
+    offset: 16
+    size: 4
+    dtype: bitfields
+    role: timestamp_packed
+    status: confirmed
+    bitfields:
+      - { name: second, shift: 0,  bits: 6 }
+      - { name: minute, shift: 6,  bits: 6 }
+      - { name: hour,   shift: 12, bits: 5 }
+      - { name: day,    shift: 17, bits: 5 }
+      - { name: month,  shift: 22, bits: 4 }
+      - { name: year,   shift: 26, bits: 6, add: 2000 }
+    note: >
+      Exact bit-packing verified against FFmpeg's get_timeinfo(). This
+      formula is load-bearing for every Dahua timestamp Pramaan reports —
+      implemented as a declarative bitfield decode rather than a one-off
+      function specifically so the interpreter needs no vendor-specific
+      code to use it correctly.
+notes:
+  - >
+    Fields after date_packed (a 2-byte sub-second timestamp, a 1-byte
+    ext_length, and a 1-byte unvalidated checksum) exist at fixed offsets
+    20-23 for type != 0xf1 chunks, but a 0xf1 padding chunk has none of
+    them — FFmpeg's reader stops immediately after the 20-byte common
+    header for that type and skips (frame_length - 20) bytes. Pramaan's
+    profile interpreter does not yet support a field being conditionally
+    present based on another field's value, so those three fields are
+    intentionally left unmodeled in this profile version rather than
+    declared at a fixed offset that would be wrong for a whole class of
+    chunks. Read them manually (offsets 20, 22, 23; all little-endian)
+    once a real Dahua image is available to confirm the 0xf1 behaviour.
+  - >
+    The extension TLV block that follows (holding resolution, codec, audio
+    sample rate, etc., keyed by a type byte such as 0x80/0x81/0x82/0x83)
+    is variable-length and not modeled here. Needed before Pramaan can
+    determine a Dahua stream's codec/resolution without external help.
+  - >
+    The chunk's tail tag is a lowercase "dhav" (distinct from the uppercase
+    "DHAV" header magic) followed by a 4-byte little-endian seek_back value,
+    where the start of the chunk is located at (tail_offset - seek_back + 8).
+    Not yet exposed as a first-class tail_marker in this profile version —
+    the recovery-layer carver implements this directly against the raw
+    bytes for now; promoting it into the schema is tracked as follow-up
+    work once a second container format needs the same mechanism.
