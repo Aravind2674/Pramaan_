@@ -35,6 +35,11 @@ dev = [
     "pytest-cov>=5.0",
     "mypy>=1.10",
     "ruff>=0.5",
+    # Type stubs mypy needs for our dependencies that ship none themselves.
+    # Missing from here once meant CI failed with a clean local mypy run,
+    # because these had been installed ad hoc into a shell, never declared.
+    "types-jsonschema",
+    "types-PyYAML",
 ]
 
 [build-system]
