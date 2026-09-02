@@ -42,11 +42,19 @@ def test_get_nonexistent_case_returns_404(client):
 
 
 def test_list_cases_reflects_created_cases(client):
-    client.post("/cases", json={"case_id": "b", "title": "T", "investigating_agency": "A", "examiner_name": "E"})
-    client.post("/cases", json={"case_id": "a", "title": "T", "investigating_agency": "A", "examiner_name": "E"})
+    client.post("/cases", json={"case_id": "b", "title": "Bravo", "investigating_agency": "A", "examiner_name": "E"})
+    client.post("/cases", json={"case_id": "a", "title": "Alpha", "investigating_agency": "A", "examiner_name": "E"})
     response = client.get("/cases")
     assert response.status_code == 200
-    assert response.json() == ["a", "b"]
+    body = response.json()
+    assert [c["case_id"] for c in body] == ["a", "b"]
+    assert [c["title"] for c in body] == ["Alpha", "Bravo"]
+
+
+def test_list_cases_is_empty_for_a_fresh_workspace(client):
+    response = client.get("/cases")
+    assert response.status_code == 200
+    assert response.json() == []
 
 
 def test_get_case_info_for_an_existing_case(client, existing_case_id):

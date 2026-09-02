@@ -27,9 +27,19 @@ def create_case(body: CaseCreateRequest, workspace: CaseWorkspace = Depends(get_
         case.close()
 
 
-@router.get("/cases", response_model=list[str])
-def list_cases(workspace: CaseWorkspace = Depends(get_workspace)) -> list[str]:
-    return workspace.list_case_ids()
+@router.get("/cases", response_model=list[CaseInfoResponse])
+def list_cases(workspace: CaseWorkspace = Depends(get_workspace)) -> list[CaseInfoResponse]:
+    """Every case's full info, not just its ID -- a case dashboard needs
+    the title, agency, and examiner to render a useful list without a
+    separate request per case."""
+    results = []
+    for case_id in workspace.list_case_ids():
+        case = workspace.open_case(case_id)
+        try:
+            results.append(CaseInfoResponse.model_validate(case.info()))
+        finally:
+            case.close()
+    return results
 
 
 @router.get("/cases/{case_id}", response_model=CaseInfoResponse)
