@@ -7,10 +7,20 @@ toward.
 (a technical expert), each with the hash-algorithm declaration the
 Schedule itself asks for. No tool surveyed during this project's research
 (see ``docs/sources.md``) generates this; every one of them stops at a
-generic export report. :mod:`pramaan.report.case_report` (planned) is the
-full narrative case report this certificate accompanies.
+generic export report.
+
+:mod:`pramaan.report.case_report` renders the full narrative case
+report this certificate accompanies — evidence intake, recovered
+footage, the timeline, examiner findings, and the audit ledger's own
+integrity verification, composed directly from a
+:class:`pramaan.case.store.Case`.
 """
 
+from pramaan.report.case_report import (
+    CaseReportError,
+    GapAnalysisWindow,
+    generate_case_report_pdf,
+)
 from pramaan.report.certificate import (
     Certificate,
     CertificateError,
@@ -22,11 +32,14 @@ from pramaan.report.certificate import (
 )
 
 __all__ = [
+    "CaseReportError",
     "Certificate",
     "CertificateError",
     "CertificatePartA",
     "CertificatePartB",
     "DeviceDetails",
+    "GapAnalysisWindow",
     "HashDeclaration",
+    "generate_case_report_pdf",
     "generate_certificate_pdf",
 ]

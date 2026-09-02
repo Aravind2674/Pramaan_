@@ -39,9 +39,11 @@ from pathlib import Path
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+from pramaan.report._styles import build_report_styles
 
 #: Device categories named in the Schedule, plus the "Other" catch-all it
 #: itself provides for — DVR is not an approximation of "Computer" here,
@@ -200,18 +202,6 @@ def _device_table(device: DeviceDetails, styles: dict[str, ParagraphStyle]) -> T
     return table
 
 
-def _build_styles() -> dict[str, ParagraphStyle]:
-    base = getSampleStyleSheet()
-    return {
-        "title": ParagraphStyle("CertTitle", parent=base["Title"], fontSize=15, spaceAfter=2 * mm),
-        "subtitle": ParagraphStyle("CertSubtitle", parent=base["Heading3"], fontSize=11, textColor=colors.grey),
-        "heading": ParagraphStyle("PartHeading", parent=base["Heading2"], fontSize=13, spaceBefore=6 * mm, spaceAfter=3 * mm),
-        "body": ParagraphStyle("CertBody", parent=base["BodyText"], fontSize=10, leading=14),
-        "mono": ParagraphStyle("CertMono", parent=base["BodyText"], fontName="Courier", fontSize=9, leading=13),
-        "small": ParagraphStyle("CertSmall", parent=base["BodyText"], fontSize=8, textColor=colors.grey, leading=11),
-    }
-
-
 def _part_a_story(part: CertificatePartA, styles: dict[str, ParagraphStyle]) -> list:
     return [
         Paragraph(f"<b>Name:</b> {part.custodian_name}", styles["body"]),
@@ -267,7 +257,7 @@ def generate_certificate_pdf(certificate: Certificate, dest_path: str | Path) ->
     if dest_path.exists():
         raise CertificateError(f"{dest_path} already exists")
 
-    styles = _build_styles()
+    styles = build_report_styles()
     doc = SimpleDocTemplate(
         str(dest_path), pagesize=A4,
         topMargin=20 * mm, bottomMargin=18 * mm, leftMargin=20 * mm, rightMargin=20 * mm,

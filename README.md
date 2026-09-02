@@ -35,7 +35,7 @@ a stub; a layer marked "planned" simply has no code yet.
 | Analysis | `pramaan.analysis` | **Partially implemented, optional.** OSD timestamp reading via calibrated template matching (`osd_ocr`) — lazily imports OpenCV, needs the `analysis` extra, produces a recorder-claimed timestamp for pairing with an independently-verified true-time source, not evidence on its own. Detection/clustering not yet built. 100% test coverage. |
 | Case store | `pramaan.case` | **Implemented.** One portable SQLite file per investigation; evidence items, recovered clips, and findings; every mutating action automatically recorded into the case's own integrity ledger; composes a `pramaan.timeline.Timeline` directly from stored clips. 100% test coverage. |
 | Export | `pramaan.export` | **Implemented.** The Surveillance Evidence Format (SEF): a documented, versioned ZIP bundle with a manifest validated against a published JSON Schema, artifact hash/size verification, audit-ledger excerpts, and optional Ed25519 signing. Independently validatable without importing Pramaan. 100% test coverage. |
-| Report | `pramaan.report` | **Partially implemented.** The BSA §63(4) certificate generator (`certificate.py`) — the statutory Part A / Part B admissibility certificate, with DVR named explicitly as a device category. No commercial or open-source DVR forensic tool surveyed during this project's research generates this at all. The full narrative case report (`case_report.py`, composing a case's summary/methodology/findings/exhibits) is still planned. 100% test coverage. |
+| Report | `pramaan.report` | **Implemented.** The BSA §63(4) certificate generator (`certificate.py`) — the statutory Part A / Part B admissibility certificate, with DVR named explicitly as a device category — and the narrative case report (`case_report.py`), composing case summary, evidence intake, recovery coverage, the clip exhibit list, examiner findings, timeline anomaly analysis, and audit-ledger integrity verification directly from a `pramaan.case.Case`. No commercial or open-source DVR forensic tool surveyed during this project's research generates either document. 100% test coverage. |
 | API / examiner console | `pramaan.api`, `web/` | Planned. |
 
 ## Design principles
@@ -65,7 +65,7 @@ pramaan/
 ├── analysis/       (optional) OSD timestamp reading; AI-assisted triage planned
 ├── case/           SQLite case store
 ├── export/         SEF interchange format
-├── report/         BSA §63(4) certificate generator; narrative case report (planned)
+├── report/         BSA §63(4) certificate generator; narrative case report
 └── api/            (planned) FastAPI backend
 web/                (planned) examiner console frontend
 forge/              synthetic DVR image generator for testing (planned)
