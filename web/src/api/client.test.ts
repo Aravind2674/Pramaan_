@@ -1,3 +1,14 @@
+// @vitest-environment node
+//
+// This file exercises the fetch-based API client, not any DOM-rendering
+// component -- it belongs in the 'node' environment rather than the
+// project default ('jsdom'). That isn't just tidiness: jsdom ships its
+// own Blob implementation, which lacks the spec's `.stream()` method,
+// while `Response`/`fetch` still come from Node's native undici. Passing
+// a jsdom Blob into a native Response makes undici call `.stream()` on
+// it internally and fail with "object.stream is not a function" -- a
+// real failure, reproducible on Node 22 in CI even though it happened
+// not to surface locally on a newer Node runtime.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { api } from './client'
 import { ApiError } from './errors'
