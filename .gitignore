@@ -7,23 +7,28 @@
 /scratch/**
 
 # Python
+# Anchored at the repo root (leading "/") rather than bare -- an
+# unanchored "lib/" here once silently swallowed the real, committed
+# web/src/lib/ directory, since gitignore patterns without a leading
+# slash match at any depth, not just Python's own top-level packaging
+# output.
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
+/build/
+/develop-eggs/
+/dist/
+/downloads/
+/eggs/
 .eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
+/lib/
+/lib64/
+/parts/
+/sdist/
+/var/
+/wheels/
 *.egg-info/
 .installed.cfg
 *.egg
