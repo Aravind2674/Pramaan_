@@ -37,7 +37,7 @@ a stub; a layer marked "planned" simply has no code yet.
 | Export | `pramaan.export` | **Implemented.** The Surveillance Evidence Format (SEF): a documented, versioned ZIP bundle with a manifest validated against a published JSON Schema, artifact hash/size verification, audit-ledger excerpts, and optional Ed25519 signing. Independently validatable without importing Pramaan. 100% test coverage. |
 | Report | `pramaan.report` | **Implemented.** The BSA §63(4) certificate generator (`certificate.py`) — the statutory Part A / Part B admissibility certificate, with DVR named explicitly as a device category — and the narrative case report (`case_report.py`), composing case summary, evidence intake, recovery coverage, the clip exhibit list, examiner findings, timeline anomaly analysis, and audit-ledger integrity verification directly from a `pramaan.case.Case`. No commercial or open-source DVR forensic tool surveyed during this project's research generates either document. 100% test coverage. |
 | API | `pramaan.api` | **Implemented.** A FastAPI service exposing case management, evidence and clip bookkeeping, examiner findings, the composed timeline, audit-ledger integrity verification, both report documents, and unsigned SEF export as one HTTP interface, backed by a `CaseWorkspace` that addresses cases by a URL-safe ID with path traversal made structurally impossible. Adds no forensic logic of its own — every route is a thin, tested translation onto the layers above it. 100% test coverage. |
-| Examiner console (UI) | `web/` | Planned. |
+| Examiner console (UI) | `web/` | **Implemented.** A React + TypeScript single-page app (Vite, TanStack Query, Tailwind CSS) driving `pramaan.api` end to end: case management, evidence and clip intake, the multi-channel timeline (a real SVG chart), examiner findings, audit-ledger integrity, and generating the certificate, the case report, and a SEF export bundle. Verified both with a Vitest suite and manually end to end against a live API. See `web/README.md`. |
 
 ## Design principles
 
@@ -68,7 +68,7 @@ pramaan/
 ├── export/         SEF interchange format
 ├── report/         BSA §63(4) certificate generator; narrative case report
 └── api/            FastAPI backend -- case workspace, routes, schemas
-web/                (planned) examiner console frontend
+web/                examiner console -- React + TypeScript + Vite frontend
 forge/              synthetic DVR image generator for testing (planned)
 bench/              benchmark corpus and measured results (planned)
 tests/
@@ -89,6 +89,19 @@ pip install -e ".[dev]"
 pytest tests/ --cov=pramaan --cov-report=term-missing
 ruff check pramaan/ tests/
 mypy pramaan/
+```
+
+### Frontend (`web/`)
+
+Requires Node.js 22+. See [`web/README.md`](web/README.md) for the full
+architecture and the API dev-server setup the frontend proxies to.
+
+```bash
+cd web
+npm install
+npm run dev
+npm run test
+npm run build
 ```
 
 ## License

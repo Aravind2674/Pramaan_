@@ -1,0 +1,67 @@
+@import 'tailwindcss';
+
+/*
+ * Pramaan's visual theme, defined once here rather than scattered across
+ * component-level utility classes.
+ *
+ * A single light theme, not a light/dark toggle -- committing to one
+ * theme actually built and tested beats a half-built toggle nobody
+ * verified both sides of. Clean, bright, and legible, with color used
+ * deliberately for meaning (clip kind, integrity status) rather than
+ * decoration.
+ *
+ * System fonts only, no external font or icon CDN: this is a forensic
+ * tool an examiner may need to run on an air-gapped machine, the same
+ * reasoning pramaan's own acquisition layer is built around.
+ */
+@theme {
+  --font-sans: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'Consolas', 'SFMono-Regular', Menlo, monospace;
+
+  --color-surface-0: #f6f7f9;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #f8fafc;
+  --color-surface-3: #eef1f5;
+  --color-line: #e3e7ee;
+  --color-line-strong: #cbd3e0;
+
+  --color-text-primary: #10192b;
+  --color-text-secondary: #4b5768;
+  --color-text-muted: #8b95a5;
+
+  --color-accent: #2563eb;
+  --color-accent-strong: #1d4ed8;
+  --color-accent-soft: #eaf1fe;
+
+  --color-kind-recorded: #059669;
+  --color-kind-recovered: #b45309;
+  --color-kind-corrupt: #e11d48;
+  --color-kind-unknown: #64748b;
+
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-success: #059669;
+  --color-success-soft: #ecfdf5;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-surface-0);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+code,
+.font-mono-data {
+  font-family: var(--font-mono);
+}
+
+::selection {
+  background-color: var(--color-accent-soft);
+  color: var(--color-text-primary);
+}
