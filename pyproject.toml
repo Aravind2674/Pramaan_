@@ -50,6 +50,12 @@ dev = [
     # because these had been installed ad hoc into a shell, never declared.
     "types-jsonschema",
     "types-PyYAML",
+    "types-reportlab",
+    # Test-only: extracting text back out of a generated PDF is how the
+    # report layer's tests prove real content is in the document, not just
+    # that a nonzero-size file exists. Never imported by pramaan.report
+    # itself -- reportlab generates, pypdf is only used to check that work.
+    "pypdf>=4.0",
 ]
 
 [build-system]
