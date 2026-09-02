@@ -36,7 +36,8 @@ a stub; a layer marked "planned" simply has no code yet.
 | Case store | `pramaan.case` | **Implemented.** One portable SQLite file per investigation; evidence items, recovered clips, and findings; every mutating action automatically recorded into the case's own integrity ledger; composes a `pramaan.timeline.Timeline` directly from stored clips. 100% test coverage. |
 | Export | `pramaan.export` | **Implemented.** The Surveillance Evidence Format (SEF): a documented, versioned ZIP bundle with a manifest validated against a published JSON Schema, artifact hash/size verification, audit-ledger excerpts, and optional Ed25519 signing. Independently validatable without importing Pramaan. 100% test coverage. |
 | Report | `pramaan.report` | **Implemented.** The BSA §63(4) certificate generator (`certificate.py`) — the statutory Part A / Part B admissibility certificate, with DVR named explicitly as a device category — and the narrative case report (`case_report.py`), composing case summary, evidence intake, recovery coverage, the clip exhibit list, examiner findings, timeline anomaly analysis, and audit-ledger integrity verification directly from a `pramaan.case.Case`. No commercial or open-source DVR forensic tool surveyed during this project's research generates either document. 100% test coverage. |
-| API / examiner console | `pramaan.api`, `web/` | Planned. |
+| API | `pramaan.api` | **Implemented.** A FastAPI service exposing case management, evidence and clip bookkeeping, examiner findings, the composed timeline, audit-ledger integrity verification, both report documents, and unsigned SEF export as one HTTP interface, backed by a `CaseWorkspace` that addresses cases by a URL-safe ID with path traversal made structurally impossible. Adds no forensic logic of its own — every route is a thin, tested translation onto the layers above it. 100% test coverage. |
+| Examiner console (UI) | `web/` | Planned. |
 
 ## Design principles
 
@@ -66,7 +67,7 @@ pramaan/
 ├── case/           SQLite case store
 ├── export/         SEF interchange format
 ├── report/         BSA §63(4) certificate generator; narrative case report
-└── api/            (planned) FastAPI backend
+└── api/            FastAPI backend -- case workspace, routes, schemas
 web/                (planned) examiner console frontend
 forge/              synthetic DVR image generator for testing (planned)
 bench/              benchmark corpus and measured results (planned)
