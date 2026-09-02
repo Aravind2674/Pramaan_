@@ -24,13 +24,18 @@ jobs:
         run: pip install -e ".[dev,analysis]"
 
       - name: Lint (ruff)
-        run: ruff check pramaan/ tests/
+        run: ruff check pramaan/ tests/ scripts/
 
       - name: Type-check (mypy)
-        run: mypy pramaan/
+        run: mypy pramaan/ scripts/
 
       - name: Test with coverage
         run: pytest tests/ --cov=pramaan --cov-report=term-missing -W error::DeprecationWarning
+
+      - name: Smoke-test the demo seed script
+        run: |
+          python scripts/seed_demo_case.py --workspace /tmp/pramaan-demo-ci
+          python scripts/seed_demo_case.py --workspace /tmp/pramaan-demo-ci --force
 
   web:
     runs-on: ubuntu-latest

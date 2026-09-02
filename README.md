@@ -67,8 +67,10 @@ pramaan/
 ├── case/           SQLite case store
 ├── export/         SEF interchange format
 ├── report/         BSA §63(4) certificate generator; narrative case report
-└── api/            FastAPI backend -- case workspace, routes, schemas
+├── api/            FastAPI backend -- case workspace, routes, schemas
+└── demo/           synthetic demonstration case, never used by production code
 web/                examiner console -- React + TypeScript + Vite frontend
+scripts/            seed_demo_case.py -- the demo/ package's CLI entry point
 forge/              synthetic DVR image generator for testing (planned)
 bench/              benchmark corpus and measured results (planned)
 tests/
@@ -103,6 +105,25 @@ npm run dev
 npm run test
 npm run build
 ```
+
+### Demo data
+
+An empty case workspace doesn't show what the tool does. `scripts/
+seed_demo_case.py` populates one with a synthetic case -- a fictional
+warehouse break-in across a two-channel DVR and a two-channel NVR, with
+a deliberate mix of intact, corrupted, and carved footage so the
+timeline, findings, and anomaly detection all have something real to
+show. Every hash it writes is a real SHA-256 over a payload the script
+generates itself; see [ADR 0012](docs/decisions/0012-demo-seed-data.md)
+for why this is a standalone script and never an API endpoint.
+
+```bash
+python scripts/seed_demo_case.py --workspace ./demo-workspace
+```
+
+Then point the API at that same workspace directory (see
+[`web/README.md`](web/README.md) for running the API alongside the
+frontend) and open the seeded case in the UI.
 
 ## License
 
