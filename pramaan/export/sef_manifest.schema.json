@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pramaan.dev/schema/sef-manifest.schema.json",
+  "title": "Pramaan Surveillance Evidence Format (SEF) Manifest",
+  "description": "The manifest at the root of a SEF bundle. Published here so a third party can validate a bundle's structure without importing Pramaan at all -- the whole point of a 'standardized' interchange format is that it does not require this specific tool to check.",
+  "type": "object",
+  "required": ["sef_version", "generated_at", "case", "artifacts", "ledger_head_hash"],
+  "additionalProperties": false,
+  "properties": {
+    "sef_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "SEF format version, independent of Pramaan's own package version."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "case": {
+      "type": "object",
+      "required": ["case_id", "title", "investigating_agency", "examiner_name"],
+      "additionalProperties": false,
+      "properties": {
+        "case_id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "investigating_agency": { "type": "string", "minLength": 1 },
+        "examiner_name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["artifact_id", "filename", "sha256", "size_bytes"],
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": { "type": "string", "minLength": 1 },
+          "filename": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "size_bytes": { "type": "integer", "minimum": 0 },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "ledger_filename": {
+      "type": "string",
+      "description": "Path within the bundle to the audit-ledger excerpt, if one is included."
+    },
+    "ledger_head_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "The case ledger's head hash at export time -- lets a verifier confirm the included ledger excerpt matches what the case actually recorded, without needing the live case file."
+    }
+  }
+}

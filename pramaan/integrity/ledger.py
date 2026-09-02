@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -94,6 +95,36 @@ class ChainVerification:
     reason: str | None
 
 
+def verify_entries(entries: Sequence[LedgerEntry]) -> ChainVerification:
+    """The chain-verification logic itself, over a plain sequence of
+    entries — not tied to a file-backed :class:`Ledger` instance.
+
+    Exists as its own function (rather than only as a method) so a caller
+    holding entries from somewhere other than an open ``Ledger`` — an
+    excerpt embedded in a :mod:`pramaan.export` bundle, say — can run the
+    exact same check :meth:`Ledger.verify_chain` uses, not a re-implementation
+    of it that could drift out of sync.
+    """
+    expected_prev = GENESIS_HASH
+    for i, entry in enumerate(entries):
+        if entry.index != i:
+            return ChainVerification(
+                False, i, f"entry at position {i} declares index {entry.index}"
+            )
+        if entry.prev_hash != expected_prev:
+            return ChainVerification(
+                False, i, f"entry {i}'s prev_hash does not match entry {i - 1}'s hash"
+            )
+        if entry.recompute_hash() != entry.entry_hash:
+            return ChainVerification(
+                False, i,
+                f"entry {i}'s content does not match its recorded hash "
+                "-- the entry has been altered since it was appended",
+            )
+        expected_prev = entry.entry_hash
+    return ChainVerification(True, None, None)
+
+
 class Ledger:
     """An in-memory, optionally file-backed hash chain of entries.
 
@@ -159,24 +190,7 @@ class Ledger:
         """Walk every entry, recomputing and checking its hash and its
         link to the previous one. Reports the first break found, if any —
         not just whether the chain is valid, but where it stopped being so."""
-        expected_prev = GENESIS_HASH
-        for i, entry in enumerate(self._entries):
-            if entry.index != i:
-                return ChainVerification(
-                    False, i, f"entry at position {i} declares index {entry.index}"
-                )
-            if entry.prev_hash != expected_prev:
-                return ChainVerification(
-                    False, i, f"entry {i}'s prev_hash does not match entry {i - 1}'s hash"
-                )
-            if entry.recompute_hash() != entry.entry_hash:
-                return ChainVerification(
-                    False, i,
-                    f"entry {i}'s content does not match its recorded hash "
-                    "-- the entry has been altered since it was appended",
-                )
-            expected_prev = entry.entry_hash
-        return ChainVerification(True, None, None)
+        return verify_entries(self._entries)
 
     def _append_to_file(self, entry: LedgerEntry) -> None:
         assert self._path is not None

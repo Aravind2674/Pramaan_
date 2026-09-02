@@ -65,6 +65,7 @@ include = ["pramaan*"]
 # a real (non-editable) install would silently omit them from the wheel.
 "pramaan.fs" = ["*.json"]
 "pramaan.fs.profiles" = ["*.yaml"]
+"pramaan.export" = ["*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -6,7 +6,7 @@ from dataclasses import replace
 
 import pytest
 
-from pramaan.integrity.ledger import GENESIS_HASH, Ledger, LedgerEntry, LedgerError
+from pramaan.integrity.ledger import GENESIS_HASH, Ledger, LedgerEntry, LedgerError, verify_entries
 
 
 def test_empty_ledger_head_is_genesis():
@@ -58,6 +58,41 @@ def test_explicit_timestamp_is_respected():
     ledger = Ledger()
     entry = ledger.append("examiner-1", "acquire", "disk-1", timestamp="2026-01-01T00:00:00+00:00")
     assert entry.timestamp == "2026-01-01T00:00:00+00:00"
+
+
+def test_verify_entries_works_standalone_without_a_ledger_instance():
+    """The point of exposing this as its own function: a caller holding
+    entries from somewhere other than an open Ledger (e.g. parsed out of a
+    JSONL excerpt embedded in an export bundle) can run the exact same
+    check, not a reimplementation of it."""
+    ledger = Ledger()
+    ledger.append("examiner-1", "acquire", "disk-1")
+    ledger.append("examiner-1", "hash", "disk-1")
+
+    result = verify_entries(ledger.entries)
+    assert result.valid is True
+
+
+def test_verify_entries_detects_a_break_the_same_way_verify_chain_does():
+    ledger = Ledger()
+    ledger.append("examiner-1", "acquire", "disk-1")
+    ledger.append("examiner-1", "hash", "disk-1")
+    tampered = replace(ledger.entries[1], prev_hash="f" * 64)
+    entries = (ledger.entries[0], tampered)
+
+    result = verify_entries(entries)
+    assert result.valid is False
+    assert result.break_at_index == 1
+
+
+def test_verify_chain_delegates_to_verify_entries(tmp_path):
+    """Not testing an implementation detail for its own sake -- confirming
+    the class method and the standalone function can never silently drift
+    apart, since one is now defined in terms of the other rather than a
+    parallel copy of the same logic."""
+    ledger = Ledger()
+    ledger.append("examiner-1", "acquire", "disk-1")
+    assert ledger.verify_chain() == verify_entries(ledger.entries)
 
 
 def test_verify_chain_on_empty_ledger_is_valid():
